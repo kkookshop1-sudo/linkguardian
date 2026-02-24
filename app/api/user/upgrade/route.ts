@@ -10,11 +10,14 @@ export async function POST() {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Upgrade user to Pro in the profiles table
+        // Upgrade user to Pro in the profiles table (using upsert to ensure row exists)
         const { error } = await supabase
             .from('profiles')
-            .update({ is_pro: true, updated_at: new Date().toISOString() })
-            .eq('id', user.id);
+            .upsert({
+                id: user.id,
+                is_pro: true,
+                updated_at: new Date().toISOString()
+            });
 
         if (error) throw error;
 
