@@ -12,7 +12,8 @@ import {
   Plus,
   ExternalLink,
   Clock,
-  LogOut
+  LogOut,
+  Mail
 } from 'lucide-react';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
@@ -93,6 +94,10 @@ export default function Dashboard() {
               <Settings size={20} />
               <span>Settings</span>
             </Link>
+            <a href="mailto:support@linkguardian.net" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Mail size={20} />
+              <span>Help: support@linkguardian.net</span>
+            </a>
           </nav>
 
           {/* Upgrade Card */}

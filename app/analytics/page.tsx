@@ -12,7 +12,8 @@ import {
     LogOut,
     TrendingUp,
     Activity,
-    AlertTriangle
+    AlertTriangle,
+    Mail
 } from 'lucide-react';
 import {
     LineChart,
@@ -102,6 +103,10 @@ export default function AnalyticsPage() {
                         <Settings size={20} />
                         <span>Settings</span>
                     </Link>
+                    <a href="mailto:support@linkguardian.net" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Mail size={20} />
+                        <span>Help: support@linkguardian.net</span>
+                    </a>
                 </nav>
 
                 <button

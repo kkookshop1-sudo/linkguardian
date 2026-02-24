@@ -15,7 +15,8 @@ import {
     BarChart3,
     Bell,
     Settings,
-    LogOut
+    LogOut,
+    Mail
 } from 'lucide-react';
 
 export default function LinksPage() {
@@ -59,6 +60,9 @@ export default function LinksPage() {
                 // Ensure result is a valid object before adding to state
                 setLinks(prev => [result, ...prev]);
                 setUrl('');
+            } else if (res.status === 403) {
+                alert(result.message || 'Limit reached. Please upgrade to Pro.');
+                // Optional: scroll to payment section
             } else {
                 console.error('Failed to add link:', result.error);
                 alert('Error adding link. Please try again.');
@@ -118,6 +122,10 @@ export default function LinksPage() {
                         <Settings size={20} />
                         <span>Settings</span>
                     </Link>
+                    <a href="mailto:support@linkguardian.net" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Mail size={20} />
+                        <span>Support: support@linkguardian.net</span>
+                    </a>
                 </nav>
 
                 <button

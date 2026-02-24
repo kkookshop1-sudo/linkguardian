@@ -35,6 +35,22 @@ export async function POST(request: Request) {
 
         const { platform, url } = await request.json();
 
+        // 1. Check existing link count for the user
+        const { count, error: countError } = await supabase
+            .from('links')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id);
+
+        if (countError) throw countError;
+
+        // 2. Enforce free tier limit (3 links)
+        if (count !== null && count >= 3) {
+            return NextResponse.json({
+                error: 'Limit reached',
+                message: 'You have reached the limit of 3 links for the Free plan. Please upgrade to Pro for unlimited monitoring.'
+            }, { status: 403 });
+        }
+
         const { data, error } = await supabase
             .from('links')
             .insert([{

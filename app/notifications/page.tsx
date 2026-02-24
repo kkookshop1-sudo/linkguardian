@@ -12,7 +12,8 @@ import {
     LogOut,
     CheckCircle2,
     XCircle,
-    Clock
+    Clock,
+    Mail
 } from 'lucide-react';
 
 export default function NotificationsPage() {
@@ -92,6 +93,10 @@ export default function NotificationsPage() {
                         <Settings size={20} />
                         <span>Settings</span>
                     </Link>
+                    <a href="mailto:support@linkguardian.net" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Mail size={20} />
+                        <span>Help: support@linkguardian.net</span>
+                    </a>
                 </nav>
 
                 <button
