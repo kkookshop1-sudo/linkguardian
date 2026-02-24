@@ -1,5 +1,146 @@
-import Placeholder from '../dashboard/Placeholder';
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import {
+    ShieldCheck,
+    LayoutDashboard,
+    Globe,
+    BarChart3,
+    Bell,
+    Settings,
+    LogOut,
+    TrendingUp,
+    Activity,
+    AlertTriangle
+} from 'lucide-react';
+import {
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    AreaChart,
+    Area
+} from 'recharts';
 
 export default function AnalyticsPage() {
-    return <Placeholder title="Analytics" />;
+    const [links, setLinks] = useState<any[]>([]);
+
+    useEffect(() => {
+        fetch('/api/links')
+            .then(res => res.json())
+            .then(data => setLinks(data || []));
+    }, []);
+
+    const data = [
+        { name: 'Mon', uptime: 98 },
+        { name: 'Tue', uptime: 100 },
+        { name: 'Wed', uptime: 99 },
+        { name: 'Thu', uptime: 97 },
+        { name: 'Fri', uptime: 100 },
+        { name: 'Sat', uptime: 100 },
+        { name: 'Sun', uptime: 99 },
+    ];
+
+    const healthyLinks = links.filter(l => l.status === 'Online').length;
+    const brokenLinks = links.filter(l => l.status !== 'Online').length;
+
+    return (
+        <div className="dashboard-container">
+            <aside className="sidebar">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2.5rem' }}>
+                    <ShieldCheck size={32} color="var(--primary)" />
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>LinkGuardian</h1>
+                </div>
+
+                <nav style={{ flex: 1 }}>
+                    <Link href="/dashboard" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <LayoutDashboard size={20} />
+                        <span>Dashboard</span>
+                    </Link>
+                    <Link href="/links" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Globe size={20} />
+                        <span>Monitored Links</span>
+                    </Link>
+                    <Link href="/analytics" className="nav-item active" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <BarChart3 size={20} />
+                        <span>Analytics</span>
+                    </Link>
+                    <Link href="/notifications" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Bell size={20} />
+                        <span>Notifications</span>
+                    </Link>
+                    <Link href="/settings" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Settings size={20} />
+                        <span>Settings</span>
+                    </Link>
+                </nav>
+
+                <Link href="/" className="nav-item" style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1.5rem', textDecoration: 'none', color: 'inherit' }}>
+                    <LogOut size={20} />
+                    <span>Logout</span>
+                </Link>
+            </aside>
+
+            <main className="main-content">
+                <header style={{ marginBottom: '2rem' }}>
+                    <h2 style={{ fontSize: '1.875rem', fontWeight: 700 }}>Performance Analytics</h2>
+                    <p style={{ color: 'var(--secondary)' }}>Real-time insights into your link health and global availability.</p>
+                </header>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                    <div className="card">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                            <TrendingUp size={20} color="var(--success)" />
+                            <p style={{ color: 'var(--secondary)', fontSize: '0.875rem' }}>Average Uptime</p>
+                        </div>
+                        <h3 style={{ fontSize: '1.875rem', fontWeight: 700 }}>99.4%</h3>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--success)', marginTop: '0.5rem' }}>+0.2% from last week</p>
+                    </div>
+                    <div className="card">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                            <Activity size={20} color="var(--primary)" />
+                            <p style={{ color: 'var(--secondary)', fontSize: '0.875rem' }}>Global Checks</p>
+                        </div>
+                        <h3 style={{ fontSize: '1.875rem', fontWeight: 700 }}>1,284</h3>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--secondary)', marginTop: '0.5rem' }}>Last 24 hours</p>
+                    </div>
+                    <div className="card">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                            <AlertTriangle size={20} color="var(--danger)" />
+                            <p style={{ color: 'var(--secondary)', fontSize: '0.875rem' }}>Incidents</p>
+                        </div>
+                        <h3 style={{ fontSize: '1.875rem', fontWeight: 700 }}>{brokenLinks}</h3>
+                        <p style={{ fontSize: '0.75rem', color: brokenLinks > 0 ? 'var(--danger)' : 'var(--success)', marginTop: '0.5rem' }}>
+                            {brokenLinks > 0 ? 'Action required' : 'System healthy'}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="card" style={{ height: '400px', marginBottom: '2rem' }}>
+                    <h4 style={{ marginBottom: '1.5rem', fontWeight: 700 }}>7-Day Uptime Trend</h4>
+                    <div style={{ width: '100%', height: '300px' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={data}>
+                                <defs>
+                                    <linearGradient id="colorUptime" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                                <YAxis axisLine={false} tickLine={false} domain={[90, 100]} />
+                                <Tooltip />
+                                <Area type="monotone" dataKey="uptime" stroke="var(--primary)" fillOpacity={1} fill="url(#colorUptime)" strokeWidth={3} />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
 }

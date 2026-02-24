@@ -107,16 +107,16 @@ export default function Dashboard() {
                   });
                 }}
                 onApprove={async (data, actions) => {
-                  alert("충성! 결제가 완료되었습니다. 대표님 서비스 업그레이드 진행하겠습니다!");
+                  alert("Success! Your account has been upgraded to Pro. Enjoy global monitoring!");
                 }}
               />
             </div>
           </div>
 
-          <div className="nav-item" style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+          <Link href="/" className="nav-item" style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1.5rem', textDecoration: 'none', color: 'inherit' }}>
             <LogOut size={20} />
             <span>Logout</span>
-          </div>
+          </Link>
         </aside>
 
         {/* Main Content */}
@@ -161,9 +161,9 @@ export default function Dashboard() {
             <h4 style={{ marginBottom: '1.5rem', fontWeight: 700 }}>Active Monitoring</h4>
             <div style={{ width: '100%' }}>
               {loading ? (
-                <p style={{ textAlign: 'center', padding: '2rem', color: 'var(--secondary)' }}>다람쥐들이 데이터를 불러오는 중입니다... 🐿️</p>
+                <p style={{ textAlign: 'center', padding: '2rem', color: 'var(--secondary)' }}>Fetching data from global servers... 🛡️</p>
               ) : links.length === 0 ? (
-                <p style={{ textAlign: 'center', padding: '2rem', color: 'var(--secondary)' }}>아직 등록된 링크가 없습니다. [Add New Link]로 시작하세요!</p>
+                <p style={{ textAlign: 'center', padding: '2rem', color: 'var(--secondary)' }}>No links monitored yet. Click [Add New Link] to begin!</p>
               ) : (
                 links.map((link) => (
                   <div key={link.id} style={{

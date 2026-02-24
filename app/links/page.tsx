@@ -10,7 +10,12 @@ import {
     Globe,
     ExternalLink,
     Loader2,
-    AlertCircle
+    AlertCircle,
+    LayoutDashboard,
+    BarChart3,
+    Bell,
+    Settings,
+    LogOut
 } from 'lucide-react';
 
 export default function LinksPage() {
@@ -77,12 +82,34 @@ export default function LinksPage() {
                     <ShieldCheck size={32} color="var(--primary)" />
                     <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>LinkGuardian</h1>
                 </div>
+
                 <nav style={{ flex: 1 }}>
                     <Link href="/dashboard" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
-                        <ArrowLeft size={20} />
-                        <span>Back to Dashboard</span>
+                        <LayoutDashboard size={20} />
+                        <span>Dashboard</span>
+                    </Link>
+                    <Link href="/links" className="nav-item active" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Globe size={20} />
+                        <span>Monitored Links</span>
+                    </Link>
+                    <Link href="/analytics" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <BarChart3 size={20} />
+                        <span>Analytics</span>
+                    </Link>
+                    <Link href="/notifications" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Bell size={20} />
+                        <span>Notifications</span>
+                    </Link>
+                    <Link href="/settings" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Settings size={20} />
+                        <span>Settings</span>
                     </Link>
                 </nav>
+
+                <Link href="/" className="nav-item" style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1.5rem', textDecoration: 'none', color: 'inherit' }}>
+                    <LogOut size={20} />
+                    <span>Logout</span>
+                </Link>
             </aside>
 
             <main className="main-content">
@@ -144,12 +171,12 @@ export default function LinksPage() {
                     {loading ? (
                         <div style={{ textAlign: 'center', padding: '3rem' }}>
                             <Loader2 className="animate-spin" size={40} color="var(--primary)" style={{ margin: '0 auto 1rem' }} />
-                            <p style={{ color: 'var(--secondary)' }}>다람쥐들이 리스트를 가져오고 있습니다... 🐿️</p>
+                            <p style={{ color: 'var(--secondary)' }}>Accessing monitoring servers... 🛡️</p>
                         </div>
                     ) : links.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '3rem', border: '2px dashed var(--border)', borderRadius: '12px' }}>
                             <AlertCircle size={40} color="var(--secondary)" style={{ margin: '0 auto 1rem' }} />
-                            <p style={{ color: 'var(--secondary)', fontSize: '1.125rem' }}>아직 등록된 링크가 없습니다. 위 폼을 통해 첫 링크를 등록하세요!</p>
+                            <p style={{ color: 'var(--secondary)', fontSize: '1.125rem' }}>No links found. Use the form above to add your first bio link!</p>
                         </div>
                     ) : (
                         <div style={{ width: '100%' }}>
