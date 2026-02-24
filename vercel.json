@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
     "crons": [
         {
             "path": "/api/cron/check-links",
@@ -6,3 +7,12 @@
         }
     ]
 }
+=======
+      "crons": [
+              {
+                        "path": "/api/cron/check-links",
+                        "schedule": "0 0 * * *"
+              }
+      ]
+}
+>>>>>>> d8720140a09b8bb1be6229bfd83a2e27609ef273
