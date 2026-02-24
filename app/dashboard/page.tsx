@@ -1,5 +1,4 @@
-'use client';
-
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   BarChart3,
@@ -16,17 +15,33 @@ import {
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 export default function Dashboard() {
-  const mockLinks = [
-    { id: 1, platform: 'Instagram', url: 'https://instagram.com/influencer_cool', status: 'Online', lastChecked: '5 mins ago' },
-    { id: 2, platform: 'TikTok', url: 'https://tiktok.com/@daily_vibe', status: 'Online', lastChecked: '12 mins ago' },
-    { id: 3, platform: 'Twitter', url: 'https://twitter.com/news_link_broken', status: '404 Error', lastChecked: '1 min ago' },
-  ];
+  const [links, setLinks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLinks();
+  }, []);
+
+  const fetchLinks = async () => {
+    try {
+      const res = await fetch('/api/links');
+      const data = await res.json();
+      setLinks(data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const paypalOptions = {
     clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test",
     currency: "USD",
     intent: "capture",
   };
+
+  const healthyLinks = links.filter(l => l.status === 'Online').length;
+  const brokenLinks = links.filter(l => l.status !== 'Online').length;
 
   return (
     <PayPalScriptProvider options={paypalOptions}>
@@ -107,7 +122,11 @@ export default function Dashboard() {
           <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <div>
               <h2 style={{ fontSize: '1.875rem', fontWeight: 700 }}>Welcome back, Creator</h2>
-              <p style={{ color: 'var(--secondary)' }}>All systems are active. 2 links are healthy, 1 needs attention.</p>
+              <p style={{ color: 'var(--secondary)' }}>
+                {links.length > 0
+                  ? `All systems are active. ${healthyLinks} healthy, ${brokenLinks} need attention.`
+                  : "Welcome! Let's start by adding your first monitored link."}
+              </p>
             </div>
             <Link href="/links">
               <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -121,15 +140,17 @@ export default function Dashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
             <div className="card">
               <p style={{ color: 'var(--secondary)', fontSize: '0.875rem' }}>Total Links</p>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.5rem' }}>12</h3>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.5rem' }}>{links.length}</h3>
             </div>
             <div className="card">
               <p style={{ color: 'var(--secondary)', fontSize: '0.875rem' }}>Uptime (24h)</p>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.5rem', color: 'var(--success)' }}>99.8%</h3>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.5rem', color: 'var(--success)' }}>
+                {links.length > 0 ? (healthyLinks / links.length * 100).toFixed(1) + '%' : '100%'}
+              </h3>
             </div>
             <div className="card">
               <p style={{ color: 'var(--secondary)', fontSize: '0.875rem' }}>Alerts Sent</p>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.5rem', color: 'var(--danger)' }}>3</h3>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.5rem', color: 'var(--danger)' }}>{brokenLinks}</h3>
             </div>
           </div>
 
@@ -137,46 +158,52 @@ export default function Dashboard() {
           <div className="card">
             <h4 style={{ marginBottom: '1.5rem', fontWeight: 700 }}>Active Monitoring</h4>
             <div style={{ width: '100%' }}>
-              {mockLinks.map((link) => (
-                <div key={link.id} style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '1rem 0',
-                  borderBottom: '1px solid var(--border)'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
-                      background: 'var(--accent)',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <Globe size={20} color="var(--primary)" />
+              {loading ? (
+                <p style={{ textAlign: 'center', padding: '2rem', color: 'var(--secondary)' }}>다람쥐들이 데이터를 불러오는 중입니다... 🐿️</p>
+              ) : links.length === 0 ? (
+                <p style={{ textAlign: 'center', padding: '2rem', color: 'var(--secondary)' }}>아직 등록된 링크가 없습니다. [Add New Link]로 시작하세요!</p>
+              ) : (
+                links.map((link) => (
+                  <div key={link.id} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '1rem 0',
+                    borderBottom: '1px solid var(--border)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{
+                        width: '40px',
+                        height: '40px',
+                        background: 'var(--accent)',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Globe size={20} color="var(--primary)" />
+                      </div>
+                      <div>
+                        <p style={{ fontWeight: 600 }}>{link.platform}</p>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--secondary)' }}>{link.url}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p style={{ fontWeight: 600 }}>{link.platform}</p>
-                      <p style={{ fontSize: '0.875rem', color: 'var(--secondary)' }}>{link.url}</p>
-                    </div>
-                  </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--secondary)', fontSize: '0.875rem' }}>
-                      <Clock size={16} />
-                      {link.lastChecked}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--secondary)', fontSize: '0.875rem' }}>
+                        <Clock size={16} />
+                        {new Date(link.last_checked).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                      <span className={`badge ${link.status === 'Online' ? 'badge-online' : 'badge-error'}`}>
+                        {link.status}
+                      </span>
+                      <Link href={link.url} target="_blank">
+                        <ExternalLink size={18} color="var(--secondary)" style={{ cursor: 'pointer' }} />
+                      </Link>
                     </div>
-                    <span className={`badge ${link.status === 'Online' ? 'badge-online' : 'badge-error'}`}>
-                      {link.status}
-                    </span>
-                    <Link href={link.url} target="_blank">
-                      <ExternalLink size={18} color="var(--secondary)" style={{ cursor: 'pointer' }} />
-                    </Link>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </main>
@@ -184,3 +211,4 @@ export default function Dashboard() {
     </PayPalScriptProvider>
   );
 }
+

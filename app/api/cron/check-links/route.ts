@@ -5,55 +5,75 @@ import { Resend } from 'resend';
 // Initialize Resend with API Key
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+import { supabase } from '@/lib/supabase';
+
 export async function GET(request: Request) {
-    // Security check: Only allow Vercel Cron or specific secret header
+    // Security check
     const authHeader = request.headers.get('authorization');
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && process.env.NODE_ENV === 'production') {
         return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    console.log('--- LinkGuardian Cron Job Started (Powered by Resend) ---');
+    console.log('--- LinkGuardian Cron Job Started ---');
 
-    // In a real app, you would fetch links from a database (e.g., Supabase)
-    const monitoredLinks = [
-        { url: 'https://instagram.com/user', email: 'user@example.com' },
-        { url: 'https://invalid-link-test-123.com', email: 'owner@example.com' },
-    ];
+    // Fetch all monitored links from DB
+    const { data: monitoredLinks, error } = await supabase
+        .from('links')
+        .select('*');
+
+    if (error) {
+        console.error('Failed to fetch links from Supabase:', error);
+        return NextResponse.json({ error: 'DB fetch failed' }, { status: 500 });
+    }
 
     const results = [];
 
-    for (const item of monitoredLinks) {
-        const isHealthy = await checkLinkStatus(item.url, item.email);
+    for (const item of monitoredLinks || []) {
+        const isHealthy = await checkLinkStatus(item.url, item.id);
         results.push({ url: item.url, isHealthy });
     }
 
     return NextResponse.json({
         success: true,
         timestamp: new Date().toISOString(),
+        count: monitoredLinks?.length || 0,
         results
     });
 }
 
-async function checkLinkStatus(url: string, userEmail: string) {
+async function checkLinkStatus(url: string, id: string) {
+    let statusStr = 'Online';
+    let isHealthy = true;
+
     try {
-        const response = await axios.get(url, { timeout: 8000 });
+        const response = await axios.get(url, {
+            timeout: 8000,
+            headers: { 'User-Agent': 'LinkGuardian-Bot/1.0' }
+        });
         console.log(`[Status ${response.status}] ${url} is healthy.`);
-        return true;
     } catch (error: any) {
-        const statusCode = error.response ? error.response.status : 'Unknown';
+        isHealthy = false;
+        const statusCode = error.response ? error.response.status : (error.code || 'TIMEOUT');
+        statusStr = `${statusCode} Error`;
 
-        if (statusCode === 404 || statusCode >= 500 || error.code === 'ENOTFOUND') {
-            console.error(`🚨 ALERT: ${url} is down (Status: ${statusCode})`);
+        console.error(`🚨 ALERT: ${url} is down (Status: ${statusCode})`);
 
-            if (process.env.RESEND_API_KEY) {
-                await sendAlertEmail(userEmail, url, statusCode.toString());
-            } else {
-                console.warn('Skipping email send: RESEND_API_KEY not configured.');
-            }
+        // Notify (Using a placeholder email for now, or you could add a user_email column)
+        const notifyEmail = process.env.NOTIFICATION_EMAIL || 'admin@linkguardian.net';
+        if (process.env.RESEND_API_KEY) {
+            await sendAlertEmail(notifyEmail, url, statusCode.toString());
         }
-        return false;
     }
+
+    // Update the status in Supabase
+    await supabase
+        .from('links')
+        .update({ status: statusStr, last_checked: new Date().toISOString() })
+        .eq('id', id);
+
+    return isHealthy;
 }
+
 
 async function sendAlertEmail(to: string, targetUrl: string, status: string) {
     try {
