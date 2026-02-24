@@ -43,7 +43,7 @@ export default function LinksPage() {
 
     const handleAddLink = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!url) return;
+        if (!url || submitting) return;
 
         setSubmitting(true);
         try {
@@ -52,13 +52,20 @@ export default function LinksPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ platform, url })
             });
-            if (res.ok) {
-                const newLink = await res.json();
-                setLinks([newLink, ...links]);
+
+            const result = await res.json();
+
+            if (res.ok && result && !result.error) {
+                // Ensure result is a valid object before adding to state
+                setLinks(prev => [result, ...prev]);
                 setUrl('');
+            } else {
+                console.error('Failed to add link:', result.error);
+                alert('Error adding link. Please try again.');
             }
         } catch (err) {
-            console.error(err);
+            console.error('Network error adding link:', err);
+            alert('Network error. Check your connection.');
         } finally {
             setSubmitting(false);
         }
@@ -200,7 +207,7 @@ export default function LinksPage() {
                         </div>
                     ) : (
                         <div style={{ width: '100%' }}>
-                            {links.map((link) => (
+                            {links.filter(l => l && l.id).map((link) => (
                                 <div key={link.id} style={{
                                     display: 'flex',
                                     alignItems: 'center',
@@ -229,14 +236,14 @@ export default function LinksPage() {
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '2.5rem' }}>
                                         <div style={{ textAlign: 'right' }}>
                                             <span className={`badge ${link.status === 'Online' ? 'badge-online' : 'badge-error'}`} style={{ display: 'inline-block', marginBottom: '0.25rem' }}>
-                                                {link.status}
+                                                {link.status || 'Pending'}
                                             </span>
                                             <p style={{ fontSize: '0.75rem', color: 'var(--secondary)' }}>
-                                                Last check: {new Date(link.last_checked).toLocaleTimeString()}
+                                                Last check: {link.last_checked ? new Date(link.last_checked).toLocaleTimeString() : 'Just now'}
                                             </p>
                                         </div>
                                         <div style={{ display: 'flex', gap: '0.75rem' }}>
-                                            <Link href={link.url} target="_blank" className="btn-icon">
+                                            <Link href={link.url || '#'} target="_blank" className="btn-icon">
                                                 <ExternalLink size={20} color="var(--secondary)" />
                                             </Link>
                                             <button onClick={() => handleDelete(link.id)} className="btn-icon" style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
