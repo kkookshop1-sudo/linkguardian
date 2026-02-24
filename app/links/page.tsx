@@ -170,9 +170,24 @@ export default function LinksPage() {
             </aside>
 
             <main className="main-content">
-                <header style={{ marginBottom: '2rem' }}>
-                    <h2 style={{ fontSize: '1.875rem', fontWeight: 700 }}>Monitored Links</h2>
-                    <p style={{ color: 'var(--secondary)' }}>Manage and track your social media links in real-time.</p>
+                <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                        <h2 style={{ fontSize: '1.875rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            Monitored Links
+                            {isPro && (
+                                <span style={{
+                                    fontSize: '0.75rem',
+                                    padding: '0.25rem 0.625rem',
+                                    background: 'var(--primary)',
+                                    color: 'white',
+                                    borderRadius: '99px',
+                                    fontWeight: 800,
+                                    letterSpacing: '0.05em'
+                                }}>PRO</span>
+                            )}
+                        </h2>
+                        <p style={{ color: 'var(--secondary)' }}>Manage and track your social media links in real-time.</p>
+                    </div>
                 </header>
 
                 {/* Add New Link Form */}

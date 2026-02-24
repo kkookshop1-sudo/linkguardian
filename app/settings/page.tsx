@@ -116,9 +116,24 @@ export default function SettingsPage() {
             </aside>
 
             <main className="main-content">
-                <header style={{ marginBottom: '2rem' }}>
-                    <h2 style={{ fontSize: '1.875rem', fontWeight: 700 }}>Settings</h2>
-                    <p style={{ color: 'var(--secondary)' }}>Manage your account preferences and notification settings.</p>
+                <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                        <h2 style={{ fontSize: '1.875rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            Settings
+                            {user?.is_pro && (
+                                <span style={{
+                                    fontSize: '0.75rem',
+                                    padding: '0.25rem 0.625rem',
+                                    background: 'var(--primary)',
+                                    color: 'white',
+                                    borderRadius: '99px',
+                                    fontWeight: 800,
+                                    letterSpacing: '0.05em'
+                                }}>PRO</span>
+                            )}
+                        </h2>
+                        <p style={{ color: 'var(--secondary)' }}>Manage your account preferences and notification settings.</p>
+                    </div>
                 </header>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>

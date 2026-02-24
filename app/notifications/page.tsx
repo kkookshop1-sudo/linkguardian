@@ -28,8 +28,17 @@ export default function NotificationsPage() {
     const fetchUser = async () => {
         const { createClient } = await import('@/utils/supabase/client');
         const supabase = createClient();
-        const { data } = await supabase.auth.getUser();
-        setUser(data.user);
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (user) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            setUser({ ...user, ...profile });
+        }
     };
 
     const fetchLinks = async () => {
@@ -119,9 +128,24 @@ export default function NotificationsPage() {
             </aside>
 
             <main className="main-content">
-                <header style={{ marginBottom: '2rem' }}>
-                    <h2 style={{ fontSize: '1.875rem', fontWeight: 700 }}>Notifications</h2>
-                    <p style={{ color: 'var(--secondary)' }}>Stay updated with your latest security alerts and system events.</p>
+                <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                        <h2 style={{ fontSize: '1.875rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            Notifications
+                            {user?.is_pro && (
+                                <span style={{
+                                    fontSize: '0.75rem',
+                                    padding: '0.25rem 0.625rem',
+                                    background: 'var(--primary)',
+                                    color: 'white',
+                                    borderRadius: '99px',
+                                    fontWeight: 800,
+                                    letterSpacing: '0.05em'
+                                }}>PRO</span>
+                            )}
+                        </h2>
+                        <p style={{ color: 'var(--secondary)' }}>Stay updated with your latest security alerts and system events.</p>
+                    </div>
                 </header>
 
                 <div className="card">
