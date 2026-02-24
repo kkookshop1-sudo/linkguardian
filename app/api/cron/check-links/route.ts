@@ -1,35 +1,34 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 import { Resend } from 'resend';
+import { createServiceRoleClient } from '@/utils/supabase/service';
 
-// Initialize Resend with API Key
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-import { supabase } from '@/lib/supabase';
-
 export async function GET(request: Request) {
-    // Security check
     const authHeader = request.headers.get('authorization');
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && process.env.NODE_ENV === 'production') {
         return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    console.log('--- LinkGuardian Cron Job Started ---');
+    console.log('--- LinkGuardian Global Cron Job Started ---');
 
-    // Fetch all monitored links from DB
+    const supabase = createServiceRoleClient();
+
+    // Fetch all monitored links
     const { data: monitoredLinks, error } = await supabase
         .from('links')
         .select('*');
 
     if (error) {
-        console.error('Failed to fetch links from Supabase:', error);
+        console.error('Failed to fetch links:', error);
         return NextResponse.json({ error: 'DB fetch failed' }, { status: 500 });
     }
 
     const results = [];
 
     for (const item of monitoredLinks || []) {
-        const isHealthy = await checkLinkStatus(item.url, item.id);
+        const isHealthy = await checkLinkStatus(item.url, item.id, item.user_id, supabase);
         results.push({ url: item.url, isHealthy });
     }
 
@@ -41,7 +40,7 @@ export async function GET(request: Request) {
     });
 }
 
-async function checkLinkStatus(url: string, id: string) {
+async function checkLinkStatus(url: string, id: string, userId: string, supabase: any) {
     let statusStr = 'Online';
     let isHealthy = true;
 
@@ -50,22 +49,22 @@ async function checkLinkStatus(url: string, id: string) {
             timeout: 8000,
             headers: { 'User-Agent': 'LinkGuardian-Bot/1.0' }
         });
-        console.log(`[Status ${response.status}] ${url} is healthy.`);
     } catch (error: any) {
         isHealthy = false;
         const statusCode = error.response ? error.response.status : (error.code || 'TIMEOUT');
         statusStr = `${statusCode} Error`;
 
-        console.error(`🚨 ALERT: ${url} is down (Status: ${statusCode})`);
+        console.error(`🚨 ALERT: ${url} is down for user ${userId}`);
 
-        // Notify (Using a placeholder email for now, or you could add a user_email column)
-        const notifyEmail = process.env.NOTIFICATION_EMAIL || 'admin@linkguardian.net';
-        if (process.env.RESEND_API_KEY) {
+        // Get user email from auth.users (requires service role)
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+        const notifyEmail = userData?.user?.email || process.env.NOTIFICATION_EMAIL;
+
+        if (process.env.RESEND_API_KEY && notifyEmail) {
             await sendAlertEmail(notifyEmail, url, statusCode.toString());
         }
     }
 
-    // Update the status in Supabase
     await supabase
         .from('links')
         .update({ status: statusStr, last_checked: new Date().toISOString() })
@@ -74,11 +73,10 @@ async function checkLinkStatus(url: string, id: string) {
     return isHealthy;
 }
 
-
 async function sendAlertEmail(to: string, targetUrl: string, status: string) {
     try {
-        const { data, error } = await resend.emails.send({
-            from: 'LinkGuardian <onboarding@resend.dev>', // Resend testing default
+        await resend.emails.send({
+            from: 'LinkGuardian <alerts@linkguardian.net>',
             to: [to],
             subject: `🚨 Action Required: Link Broken on LinkGuardian`,
             html: `
@@ -95,13 +93,7 @@ async function sendAlertEmail(to: string, targetUrl: string, status: string) {
         </div>
       `,
         });
-
-        if (error) {
-            console.error('Resend Email Error:', error);
-        } else {
-            console.log('Alert email sent via Resend:', data?.id);
-        }
     } catch (err) {
-        console.error('Critical Email failure:', err);
+        console.error('Email failure:', err);
     }
 }

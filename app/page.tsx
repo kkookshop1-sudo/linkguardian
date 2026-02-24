@@ -8,8 +8,12 @@ import {
     ArrowRight,
     BellRing
 } from 'lucide-react';
+import { createClient } from '@/utils/supabase/server';
 
-export default function LandingPage() {
+export default async function LandingPage() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
     return (
         <div style={{ minHeight: '100vh', background: 'white' }}>
             {/* Navigation */}
@@ -21,9 +25,18 @@ export default function LandingPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
                     <Link href="#features" style={{ fontWeight: 500, color: 'var(--secondary)' }}>Features</Link>
                     <Link href="#pricing" style={{ fontWeight: 500, color: 'var(--secondary)' }}>Pricing</Link>
-                    <Link href="/dashboard">
-                        <button className="btn btn-primary">Go to Dashboard</button>
-                    </Link>
+                    {user ? (
+                        <Link href="/dashboard">
+                            <button className="btn btn-primary">Dashboard</button>
+                        </Link>
+                    ) : (
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <Link href="/login" style={{ fontWeight: 600, color: 'var(--primary)', marginTop: '0.75rem' }}>Log in</Link>
+                            <Link href="/signup">
+                                <button className="btn btn-primary">Sign up</button>
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </nav>
 
@@ -39,9 +52,9 @@ export default function LandingPage() {
                     LinkGuardian monitors your social media bio links 24/7. Don't lose followers or sales to a 404 error ever again.
                 </p>
                 <div style={{ display: 'flex', gap: '1rem' }}>
-                    <Link href="/dashboard">
+                    <Link href={user ? "/dashboard" : "/signup"}>
                         <button className="btn btn-primary" style={{ padding: '1rem 2.5rem', fontSize: '1.125rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            Start Protecting Now <ArrowRight size={20} />
+                            {user ? "Go to Dashboard" : "Start Protecting Now"} <ArrowRight size={20} />
                         </button>
                     </Link>
                 </div>
@@ -65,7 +78,7 @@ export default function LandingPage() {
                     </div>
                     <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem' }}>Real-time Notifications</h3>
                     <p style={{ color: 'var(--secondary)', lineHeight: 1.6 }}>
-                        Get notified via Email and SMS the second your link breaks. Take action before your fans notice.
+                        Get notified via Email the second your link breaks. Take action before your fans notice.
                     </p>
                 </div>
 
@@ -96,7 +109,7 @@ export default function LandingPage() {
                             {[
                                 'Monitor up to 50 links',
                                 'Hourly status checks',
-                                'Email & SMS alerts',
+                                'Real-time email alerts',
                                 'Detailed uptime analytics',
                                 'Priority support'
                             ].map((item, idx) => (
@@ -106,7 +119,7 @@ export default function LandingPage() {
                                 </li>
                             ))}
                         </ul>
-                        <Link href="/dashboard">
+                        <Link href="/signup">
                             <button className="btn btn-primary" style={{ width: '100%', padding: '1rem' }}>Get Started with Pro</button>
                         </Link>
                     </div>

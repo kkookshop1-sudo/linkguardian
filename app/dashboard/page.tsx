@@ -19,10 +19,19 @@ import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 export default function Dashboard() {
   const [links, setLinks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     fetchLinks();
+    fetchUser();
   }, []);
+
+  const fetchUser = async () => {
+    const { createClient } = await import('@/utils/supabase/client');
+    const supabase = createClient();
+    const { data } = await supabase.auth.getUser();
+    setUser(data.user);
+  };
 
   const fetchLinks = async () => {
     try {
@@ -44,6 +53,13 @@ export default function Dashboard() {
 
   const healthyLinks = links.filter(l => l.status === 'Online').length;
   const brokenLinks = links.filter(l => l.status !== 'Online').length;
+
+  const handleLogout = async () => {
+    const { createClient } = await import('@/utils/supabase/client');
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = '/';
+  };
 
   return (
     <PayPalScriptProvider options={paypalOptions}>
@@ -113,17 +129,32 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <Link href="/" className="nav-item" style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1.5rem', textDecoration: 'none', color: 'inherit' }}>
+          <button
+            onClick={handleLogout}
+            className="nav-item"
+            style={{
+              marginTop: 'auto',
+              borderTop: '1px solid var(--border)',
+              paddingTop: '1.5rem',
+              background: 'transparent',
+              border: 'none',
+              width: '100%',
+              cursor: 'pointer',
+              textAlign: 'left'
+            }}
+          >
             <LogOut size={20} />
             <span>Logout</span>
-          </Link>
+          </button>
         </aside>
 
         {/* Main Content */}
         <main className="main-content">
           <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <div>
-              <h2 style={{ fontSize: '1.875rem', fontWeight: 700 }}>Welcome back, Creator</h2>
+              <h2 style={{ fontSize: '1.875rem', fontWeight: 700 }}>
+                Welcome back, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Creator'}
+              </h2>
               <p style={{ color: 'var(--secondary)' }}>
                 {links.length > 0
                   ? `All systems are active. ${healthyLinks} healthy, ${brokenLinks} need attention.`
