@@ -49,7 +49,9 @@ export default function LinksPage() {
                 .eq('id', user.id)
                 .single();
 
-            if (profile) setIsPro(profile.is_pro);
+            const isMaster = user.email === 'kkookshop@gmail.com';
+            if (profile) setIsPro(profile.is_pro || isMaster);
+            else if (isMaster) setIsPro(true);
         }
     };
 

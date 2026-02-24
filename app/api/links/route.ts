@@ -42,7 +42,8 @@ export async function POST(request: Request) {
             .eq('id', user.id)
             .single();
 
-        const isPro = profile?.is_pro || false;
+        const isMaster = user.email === 'kkookshop@gmail.com';
+        const isPro = profile?.is_pro || isMaster;
 
         // 2. Check existing link count for the user
         const { count, error: countError } = await supabase

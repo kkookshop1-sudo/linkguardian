@@ -39,7 +39,8 @@ export default function SettingsPage() {
                 .eq('id', user.id)
                 .single();
 
-            const userData = { ...user, ...profile };
+            const isMaster = user.email === 'kkookshop@gmail.com';
+            const userData = { ...user, ...profile, is_pro: profile?.is_pro || isMaster };
             setUser(userData);
             setEmail(user.email || '');
             setName(userData.full_name || user.user_metadata?.full_name || '');

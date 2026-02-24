@@ -37,7 +37,8 @@ export default function NotificationsPage() {
                 .eq('id', user.id)
                 .single();
 
-            setUser({ ...user, ...profile });
+            const isMaster = user.email === 'kkookshop@gmail.com';
+            setUser({ ...user, ...profile, is_pro: profile?.is_pro || isMaster });
         }
     };
 
