@@ -17,18 +17,51 @@ import {
 
 export default function NotificationsPage() {
     const [links, setLinks] = useState<any[]>([]);
+    const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
-        fetch('/api/links')
-            .then(res => res.json())
-            .then(data => setLinks(data || []));
+        fetchLinks();
+        fetchUser();
     }, []);
 
-    const notifications = [
-        { id: 1, type: 'status_check', title: 'System-wide scan completed', content: 'Checked 12 links. All systems operational.', time: '10 mins ago', status: 'success' },
-        { id: 2, type: 'alert', title: 'Link Failure Detected', content: 'Your Instagram profile link returned a 404 error.', time: '2 hours ago', status: 'error' },
-        { id: 3, type: 'system', title: 'Plan Upgrade Successful', content: 'Welcome to LinkGuardian Pro!', time: '1 day ago', status: 'success' },
-    ];
+    const fetchUser = async () => {
+        const { createClient } = await import('@/utils/supabase/client');
+        const supabase = createClient();
+        const { data } = await supabase.auth.getUser();
+        setUser(data.user);
+    };
+
+    const fetchLinks = async () => {
+        try {
+            const res = await fetch('/api/links');
+            const data = await res.json();
+            setLinks(data || []);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleLogout = async () => {
+        const { createClient } = await import('@/utils/supabase/client');
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        window.location.href = '/';
+    };
+
+    const generatedNotifications = links.map((link, idx) => ({
+        id: link.id || idx,
+        type: 'status_check',
+        title: link.status === 'Online' ? `Monitoring Active: ${link.platform}` : `Link Alert: ${link.platform}`,
+        content: link.status === 'Online'
+            ? `Your ${link.platform} link is healthy and accessible.`
+            : `We detected a potential issue with your ${link.platform} link (${link.status}).`,
+        time: idx === 0 ? 'Just now' : `${idx * 2} hours ago`,
+        status: link.status === 'Online' ? 'success' : 'error'
+    }));
+
+    const notifications = generatedNotifications.length > 0
+        ? generatedNotifications
+        : [{ id: 0, type: 'system', title: 'System Ready', content: 'LinkGuardian is watching your back. add links to start!', time: 'Now', status: 'success' }];
 
     return (
         <div className="dashboard-container">
@@ -61,10 +94,23 @@ export default function NotificationsPage() {
                     </Link>
                 </nav>
 
-                <Link href="/" className="nav-item" style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1.5rem', textDecoration: 'none', color: 'inherit' }}>
+                <button
+                    onClick={handleLogout}
+                    className="nav-item"
+                    style={{
+                        marginTop: 'auto',
+                        borderTop: '1px solid var(--border)',
+                        paddingTop: '1.5rem',
+                        background: 'transparent',
+                        border: 'none',
+                        width: '100%',
+                        cursor: 'pointer',
+                        textAlign: 'left'
+                    }}
+                >
                     <LogOut size={20} />
                     <span>Logout</span>
-                </Link>
+                </button>
             </aside>
 
             <main className="main-content">

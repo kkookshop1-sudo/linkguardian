@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
     ShieldCheck,
@@ -18,9 +18,32 @@ import {
 } from 'lucide-react';
 
 export default function SettingsPage() {
-    const [email, setEmail] = useState('kkookshop1@gmail.com');
-    const [name, setName] = useState('Creator');
+    const [user, setUser] = useState<any>(null);
+    const [email, setEmail] = useState('');
+    const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        fetchUser();
+    }, []);
+
+    const fetchUser = async () => {
+        const { createClient } = await import('@/utils/supabase/client');
+        const supabase = createClient();
+        const { data } = await supabase.auth.getUser();
+        if (data.user) {
+            setUser(data.user);
+            setEmail(data.user.email || '');
+            setName(data.user.user_metadata?.full_name || '');
+        }
+    };
+
+    const handleLogout = async () => {
+        const { createClient } = await import('@/utils/supabase/client');
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        window.location.href = '/';
+    };
 
     const handleSave = () => {
         setLoading(true);
@@ -61,10 +84,23 @@ export default function SettingsPage() {
                     </Link>
                 </nav>
 
-                <Link href="/" className="nav-item" style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1.5rem', textDecoration: 'none', color: 'inherit' }}>
+                <button
+                    onClick={handleLogout}
+                    className="nav-item"
+                    style={{
+                        marginTop: 'auto',
+                        borderTop: '1px solid var(--border)',
+                        paddingTop: '1.5rem',
+                        background: 'transparent',
+                        border: 'none',
+                        width: '100%',
+                        cursor: 'pointer',
+                        textAlign: 'left'
+                    }}
+                >
                     <LogOut size={20} />
                     <span>Logout</span>
-                </Link>
+                </button>
             </aside>
 
             <main className="main-content">

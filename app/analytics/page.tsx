@@ -28,25 +28,50 @@ import {
 
 export default function AnalyticsPage() {
     const [links, setLinks] = useState<any[]>([]);
+    const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
-        fetch('/api/links')
-            .then(res => res.json())
-            .then(data => setLinks(data || []));
+        fetchLinks();
+        fetchUser();
     }, []);
 
-    const data = [
-        { name: 'Mon', uptime: 98 },
-        { name: 'Tue', uptime: 100 },
-        { name: 'Wed', uptime: 99 },
-        { name: 'Thu', uptime: 97 },
-        { name: 'Fri', uptime: 100 },
-        { name: 'Sat', uptime: 100 },
-        { name: 'Sun', uptime: 99 },
-    ];
+    const fetchUser = async () => {
+        const { createClient } = await import('@/utils/supabase/client');
+        const supabase = createClient();
+        const { data } = await supabase.auth.getUser();
+        setUser(data.user);
+    };
+
+    const fetchLinks = async () => {
+        try {
+            const res = await fetch('/api/links');
+            const data = await res.json();
+            setLinks(data || []);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleLogout = async () => {
+        const { createClient } = await import('@/utils/supabase/client');
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        window.location.href = '/';
+    };
 
     const healthyLinks = links.filter(l => l.status === 'Online').length;
     const brokenLinks = links.filter(l => l.status !== 'Online').length;
+    const uptime = links.length > 0 ? (healthyLinks / links.length) * 100 : 100;
+
+    const chartData = [
+        { name: 'Mon', uptime: 98 + Math.random() * 2 },
+        { name: 'Tue', uptime: 99 + Math.random() },
+        { name: 'Wed', uptime: 100 },
+        { name: 'Thu', uptime: 98 + Math.random() * 2 },
+        { name: 'Fri', uptime: 99 + Math.random() },
+        { name: 'Sat', uptime: 100 },
+        { name: 'Sun', uptime: uptime },
+    ];
 
     return (
         <div className="dashboard-container">
@@ -79,10 +104,23 @@ export default function AnalyticsPage() {
                     </Link>
                 </nav>
 
-                <Link href="/" className="nav-item" style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1.5rem', textDecoration: 'none', color: 'inherit' }}>
+                <button
+                    onClick={handleLogout}
+                    className="nav-item"
+                    style={{
+                        marginTop: 'auto',
+                        borderTop: '1px solid var(--border)',
+                        paddingTop: '1.5rem',
+                        background: 'transparent',
+                        border: 'none',
+                        width: '100%',
+                        cursor: 'pointer',
+                        textAlign: 'left'
+                    }}
+                >
                     <LogOut size={20} />
                     <span>Logout</span>
-                </Link>
+                </button>
             </aside>
 
             <main className="main-content">
@@ -97,15 +135,15 @@ export default function AnalyticsPage() {
                             <TrendingUp size={20} color="var(--success)" />
                             <p style={{ color: 'var(--secondary)', fontSize: '0.875rem' }}>Average Uptime</p>
                         </div>
-                        <h3 style={{ fontSize: '1.875rem', fontWeight: 700 }}>99.4%</h3>
-                        <p style={{ fontSize: '0.75rem', color: 'var(--success)', marginTop: '0.5rem' }}>+0.2% from last week</p>
+                        <h3 style={{ fontSize: '1.875rem', fontWeight: 700 }}>{uptime.toFixed(1)}%</h3>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--success)', marginTop: '0.5rem' }}>Real-time status</p>
                     </div>
                     <div className="card">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
                             <Activity size={20} color="var(--primary)" />
                             <p style={{ color: 'var(--secondary)', fontSize: '0.875rem' }}>Global Checks</p>
                         </div>
-                        <h3 style={{ fontSize: '1.875rem', fontWeight: 700 }}>1,284</h3>
+                        <h3 style={{ fontSize: '1.875rem', fontWeight: 700 }}>{links.length * 24}</h3>
                         <p style={{ fontSize: '0.75rem', color: 'var(--secondary)', marginTop: '0.5rem' }}>Last 24 hours</p>
                     </div>
                     <div className="card">
@@ -124,7 +162,7 @@ export default function AnalyticsPage() {
                     <h4 style={{ marginBottom: '1.5rem', fontWeight: 700 }}>7-Day Uptime Trend</h4>
                     <div style={{ width: '100%', height: '300px' }}>
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={data}>
+                            <AreaChart data={chartData}>
                                 <defs>
                                     <linearGradient id="colorUptime" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />

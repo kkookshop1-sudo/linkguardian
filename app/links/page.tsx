@@ -75,6 +75,13 @@ export default function LinksPage() {
         }
     };
 
+    const handleLogout = async () => {
+        const { createClient } = await import('@/utils/supabase/client');
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        window.location.href = '/';
+    };
+
     return (
         <div className="dashboard-container" style={{ background: '#f8fafc' }}>
             <aside className="sidebar">
@@ -106,10 +113,23 @@ export default function LinksPage() {
                     </Link>
                 </nav>
 
-                <Link href="/" className="nav-item" style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1.5rem', textDecoration: 'none', color: 'inherit' }}>
+                <button
+                    onClick={handleLogout}
+                    className="nav-item"
+                    style={{
+                        marginTop: 'auto',
+                        borderTop: '1px solid var(--border)',
+                        paddingTop: '1.5rem',
+                        background: 'transparent',
+                        border: 'none',
+                        width: '100%',
+                        cursor: 'pointer',
+                        textAlign: 'left'
+                    }}
+                >
                     <LogOut size={20} />
                     <span>Logout</span>
-                </Link>
+                </button>
             </aside>
 
             <main className="main-content">
