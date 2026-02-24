@@ -39,26 +39,26 @@ export default function Dashboard() {
           </div>
 
           <nav style={{ flex: 1 }}>
-            <div className="nav-item active">
+            <Link href="/dashboard" className="nav-item active" style={{ textDecoration: 'none', color: 'inherit' }}>
               <LayoutDashboard size={20} />
               <span>Dashboard</span>
-            </div>
-            <div className="nav-item">
+            </Link>
+            <Link href="/links" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
               <Globe size={20} />
               <span>Monitored Links</span>
-            </div>
-            <div className="nav-item">
+            </Link>
+            <Link href="/analytics" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
               <BarChart3 size={20} />
               <span>Analytics</span>
-            </div>
-            <div className="nav-item">
+            </Link>
+            <Link href="/notifications" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
               <Bell size={20} />
               <span>Notifications</span>
-            </div>
-            <div className="nav-item">
+            </Link>
+            <Link href="/settings" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
               <Settings size={20} />
               <span>Settings</span>
-            </div>
+            </Link>
           </nav>
 
           {/* Upgrade Card */}
@@ -109,10 +109,12 @@ export default function Dashboard() {
               <h2 style={{ fontSize: '1.875rem', fontWeight: 700 }}>Welcome back, Creator</h2>
               <p style={{ color: 'var(--secondary)' }}>All systems are active. 2 links are healthy, 1 needs attention.</p>
             </div>
-            <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Plus size={20} />
-              Add New Link
-            </button>
+            <Link href="/links">
+              <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Plus size={20} />
+                Add New Link
+              </button>
+            </Link>
           </header>
 
           {/* Stats Grid */}
