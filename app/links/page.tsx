@@ -16,8 +16,12 @@ import {
     Bell,
     Settings,
     LogOut,
-    Mail
+    Mail,
+    Zap,
+    CheckCircle,
+    X
 } from 'lucide-react';
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 export default function LinksPage() {
     const [links, setLinks] = useState<any[]>([]);
@@ -25,6 +29,7 @@ export default function LinksPage() {
     const [submitting, setSubmitting] = useState(false);
     const [url, setUrl] = useState('');
     const [platform, setPlatform] = useState('Instagram');
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
     useEffect(() => {
         fetchLinks();
@@ -61,8 +66,7 @@ export default function LinksPage() {
                 setLinks(prev => [result, ...prev]);
                 setUrl('');
             } else if (res.status === 403) {
-                alert(result.message || 'Limit reached. Please upgrade to Pro.');
-                // Optional: scroll to payment section
+                setShowUpgradeModal(true);
             } else {
                 console.error('Failed to add link:', result.error);
                 alert('Error adding link. Please try again.');
@@ -265,6 +269,103 @@ export default function LinksPage() {
                     )}
                 </div>
             </main>
+
+            {/* Upgrade Modal */}
+            {showUpgradeModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    backdropFilter: 'blur(4px)'
+                }}>
+                    <div style={{
+                        background: 'white',
+                        padding: '2.5rem',
+                        borderRadius: '24px',
+                        maxWidth: '500px',
+                        width: '90%',
+                        position: 'relative',
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)'
+                    }}>
+                        <button
+                            onClick={() => setShowUpgradeModal(false)}
+                            style={{ position: 'absolute', top: '20px', right: '20px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--secondary)' }}
+                        >
+                            <X size={24} />
+                        </button>
+
+                        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                            <div style={{
+                                width: '64px',
+                                height: '64px',
+                                background: 'var(--accent)',
+                                borderRadius: '20px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                margin: '0 auto 1.5rem',
+                                color: 'var(--primary)'
+                            }}>
+                                <Zap size={32} style={{ margin: 'auto' }} />
+                            </div>
+                            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.5rem' }}>Upgrade to Pro</h2>
+                            <p style={{ color: 'var(--secondary)' }}>You've reached the free limit. Unlock LinkGuardian Pro for ultimate protection.</p>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <CheckCircle size={20} color="var(--success)" />
+                                <span style={{ fontWeight: 600 }}>Unlimited Monitored Links</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <CheckCircle size={20} color="var(--success)" />
+                                <span style={{ fontWeight: 600 }}>Real-time Priority Monitoring</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <CheckCircle size={20} color="var(--success)" />
+                                <span style={{ fontWeight: 600 }}>Custom Email & SMS Alerts</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <CheckCircle size={20} color="var(--success)" />
+                                <span style={{ fontWeight: 600 }}>Advanced Performance Analytics</span>
+                            </div>
+                        </div>
+
+                        <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '16px', marginBottom: '2rem', border: '1px solid var(--border)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                <span style={{ fontWeight: 700 }}>Pro Annual Plan</span>
+                                <span style={{ fontSize: '1.25rem', fontWeight: 800 }}>$9.99/mo</span>
+                            </div>
+                            <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test", currency: "USD", intent: "capture", locale: "en_US" }}>
+                                <PayPalButtons
+                                    style={{ layout: "vertical", height: 45, color: 'blue', label: 'checkout' }}
+                                    createOrder={(data, actions) => {
+                                        return actions.order.create({
+                                            intent: "CAPTURE",
+                                            purchase_units: [{ amount: { currency_code: "USD", value: "9.99" } }],
+                                        });
+                                    }}
+                                    onApprove={async (data, actions) => {
+                                        alert("Thank you! Your account is now Pro. Enjoy unlimited monitoring! 🚀");
+                                        setShowUpgradeModal(false);
+                                    }}
+                                />
+                            </PayPalScriptProvider>
+                        </div>
+
+                        <p style={{ textAlign: 'center', fontSize: '0.8125rem', color: 'var(--secondary)' }}>
+                            Cancel anytime. 30-day money-back guarantee.
+                        </p>
+                    </div>
+                </div>
+            )}
 
             <style jsx>{`
         .btn-icon {
