@@ -30,11 +30,19 @@ export default function SettingsPage() {
     const fetchUser = async () => {
         const { createClient } = await import('@/utils/supabase/client');
         const supabase = createClient();
-        const { data } = await supabase.auth.getUser();
-        if (data.user) {
-            setUser(data.user);
-            setEmail(data.user.email || '');
-            setName(data.user.user_metadata?.full_name || '');
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (user) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            const userData = { ...user, ...profile };
+            setUser(userData);
+            setEmail(user.email || '');
+            setName(userData.full_name || user.user_metadata?.full_name || '');
         }
     };
 
@@ -160,10 +168,16 @@ export default function SettingsPage() {
                         </div>
                         <div style={{ padding: '1.5rem', borderRadius: '12px', background: '#f8fafc', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
-                                <p style={{ fontWeight: 700 }}>Free Plan</p>
-                                <p style={{ fontSize: '0.875rem', color: 'var(--secondary)' }}>Up to 3 links, daily monitoring.</p>
+                                <p style={{ fontWeight: 700 }}>{user?.is_pro ? 'Pro Annual Plan' : 'Free Plan'}</p>
+                                <p style={{ fontSize: '0.875rem', color: 'var(--secondary)' }}>
+                                    {user?.is_pro ? 'Unlimited monitored links, priority tracking.' : 'Up to 3 links, daily monitoring.'}
+                                </p>
                             </div>
-                            <button className="btn btn-primary" style={{ background: 'var(--dark)', borderColor: 'var(--dark)' }}>Upgrade to Pro</button>
+                            {!user?.is_pro && (
+                                <Link href="/dashboard">
+                                    <button className="btn btn-primary" style={{ background: 'var(--dark)', borderColor: 'var(--dark)' }}>Upgrade to Pro</button>
+                                </Link>
+                            )}
                         </div>
                     </div>
 

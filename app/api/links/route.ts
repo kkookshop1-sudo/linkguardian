@@ -35,7 +35,16 @@ export async function POST(request: Request) {
 
         const { platform, url } = await request.json();
 
-        // 1. Check existing link count for the user
+        // 1. Check user profile for Pro status
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('is_pro')
+            .eq('id', user.id)
+            .single();
+
+        const isPro = profile?.is_pro || false;
+
+        // 2. Check existing link count for the user
         const { count, error: countError } = await supabase
             .from('links')
             .select('*', { count: 'exact', head: true })
@@ -43,8 +52,8 @@ export async function POST(request: Request) {
 
         if (countError) throw countError;
 
-        // 2. Enforce free tier limit (3 links)
-        if (count !== null && count >= 3) {
+        // 3. Enforce free tier limit (3 links) only for non-Pro users
+        if (!isPro && count !== null && count >= 3) {
             return NextResponse.json({
                 error: 'Limit reached',
                 message: 'You have reached the limit of 3 links for the Free plan. Please upgrade to Pro for unlimited monitoring.'

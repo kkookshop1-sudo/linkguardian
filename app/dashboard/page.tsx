@@ -30,8 +30,17 @@ export default function Dashboard() {
   const fetchUser = async () => {
     const { createClient } = await import('@/utils/supabase/client');
     const supabase = createClient();
-    const { data } = await supabase.auth.getUser();
-    setUser(data.user);
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      setUser({ ...user, ...profile });
+    }
   };
 
   const fetchLinks = async () => {
@@ -101,39 +110,50 @@ export default function Dashboard() {
           </nav>
 
           {/* Upgrade Card */}
-          <div style={{
-            padding: '1.25rem',
-            background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-            borderRadius: '16px',
-            marginBottom: '1.5rem',
-            border: '1px solid #bfdbfe'
-          }}>
-            <p style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e40af' }}>🚀 Upgrade to Pro</p>
-            <p style={{ fontSize: '0.75rem', color: '#1e3a8a', marginTop: '0.5rem', marginBottom: '1rem' }}>
-              Full global monitoring & Real-time alerts.
-            </p>
-            <div style={{ height: '35px', overflow: 'hidden' }}>
-              <PayPalButtons
-                style={{ layout: "horizontal", height: 35, color: 'blue', label: 'checkout' }}
-                createOrder={(data, actions) => {
-                  return actions.order.create({
-                    intent: "CAPTURE",
-                    purchase_units: [
-                      {
-                        amount: {
-                          currency_code: "USD",
-                          value: "9.99",
+          {!user?.is_pro && (
+            <div style={{
+              padding: '1.25rem',
+              background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+              borderRadius: '16px',
+              marginBottom: '1.5rem',
+              border: '1px solid #bfdbfe'
+            }}>
+              <p style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e40af' }}>🚀 Upgrade to Pro</p>
+              <p style={{ fontSize: '0.75rem', color: '#1e3a8a', marginTop: '0.5rem', marginBottom: '1rem' }}>
+                Full global monitoring & Real-time alerts.
+              </p>
+              <div style={{ height: '35px', overflow: 'hidden' }}>
+                <PayPalButtons
+                  style={{ layout: "horizontal", height: 35, color: 'blue', label: 'checkout' }}
+                  createOrder={(data, actions) => {
+                    return actions.order.create({
+                      intent: "CAPTURE",
+                      purchase_units: [
+                        {
+                          amount: {
+                            currency_code: "USD",
+                            value: "9.99",
+                          },
                         },
-                      },
-                    ],
-                  });
-                }}
-                onApprove={async (data, actions) => {
-                  alert("Success! Your account has been upgraded to Pro. Enjoy global monitoring!");
-                }}
-              />
+                      ],
+                    });
+                  }}
+                  onApprove={async (data, actions) => {
+                    try {
+                      const res = await fetch('/api/user/upgrade', { method: 'POST' });
+                      if (res.ok) {
+                        alert("Success! Your account has been upgraded to Pro. Enjoy global monitoring!");
+                        fetchUser(); // Refresh user data
+                      }
+                    } catch (err) {
+                      console.error('Upgrade failed:', err);
+                      alert("Payment successful, but account upgrade failed. Please contact support.");
+                    }
+                  }}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <button
             onClick={handleLogout}
@@ -158,8 +178,19 @@ export default function Dashboard() {
         <main className="main-content">
           <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <div>
-              <h2 style={{ fontSize: '1.875rem', fontWeight: 700 }}>
-                Welcome back, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Creator'}
+              <h2 style={{ fontSize: '1.875rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                Welcome back, {user?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Creator'}
+                {user?.is_pro && (
+                  <span style={{
+                    fontSize: '0.75rem',
+                    padding: '0.25rem 0.625rem',
+                    background: 'var(--primary)',
+                    color: 'white',
+                    borderRadius: '99px',
+                    fontWeight: 800,
+                    letterSpacing: '0.05em'
+                  }}>PRO</span>
+                )}
               </h2>
               <p style={{ color: 'var(--secondary)' }}>
                 {links.length > 0

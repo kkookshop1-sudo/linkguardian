@@ -30,10 +30,28 @@ export default function LinksPage() {
     const [url, setUrl] = useState('');
     const [platform, setPlatform] = useState('Instagram');
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [isPro, setIsPro] = useState(false);
 
     useEffect(() => {
         fetchLinks();
+        fetchUser();
     }, []);
+
+    const fetchUser = async () => {
+        const { createClient } = await import('@/utils/supabase/client');
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (user) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('is_pro')
+                .eq('id', user.id)
+                .single();
+
+            if (profile) setIsPro(profile.is_pro);
+        }
+    };
 
     const fetchLinks = async () => {
         try {
@@ -353,8 +371,17 @@ export default function LinksPage() {
                                         });
                                     }}
                                     onApprove={async (data, actions) => {
-                                        alert("Thank you! Your account is now Pro. Enjoy unlimited monitoring! 🚀");
-                                        setShowUpgradeModal(false);
+                                        try {
+                                            const res = await fetch('/api/user/upgrade', { method: 'POST' });
+                                            if (res.ok) {
+                                                alert("Thank you! Your account is now Pro. Enjoy unlimited monitoring! 🚀");
+                                                setIsPro(true);
+                                                setShowUpgradeModal(false);
+                                            }
+                                        } catch (err) {
+                                            console.error('Upgrade failed:', err);
+                                            alert("Payment successful, but account upgrade failed. Please contact support.");
+                                        }
                                     }}
                                 />
                             </PayPalScriptProvider>
