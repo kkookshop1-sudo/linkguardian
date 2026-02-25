@@ -56,12 +56,22 @@ async function checkLinkStatus(url: string, id: string, userId: string, supabase
 
         console.error(`🚨 ALERT: ${url} is down for user ${userId}`);
 
-        // Get user email from auth.users (requires service role)
-        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
-        const notifyEmail = userData?.user?.email || process.env.NOTIFICATION_EMAIL;
+        let notifyEmail = process.env.NOTIFICATION_EMAIL;
+
+        // Try to get user email from auth.users, but don't fail if service role key is missing
+        try {
+            if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+                const { data: userData } = await supabase.auth.admin.getUserById(userId);
+                if (userData?.user?.email) {
+                    notifyEmail = userData.user.email;
+                }
+            }
+        } catch (e) {
+            console.error('Failed to fetch user email (missing service role key?). Using default fallback.');
+        }
 
         if (process.env.RESEND_API_KEY && notifyEmail) {
-            await sendAlertEmail(notifyEmail, url, statusCode.toString());
+            await sendAlertEmail(notifyEmail, url, statusStr);
         }
     }
 

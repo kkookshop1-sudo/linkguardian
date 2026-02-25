@@ -146,10 +146,10 @@ export default function LinksPage() {
                         <Settings size={20} />
                         <span>Settings</span>
                     </Link>
-                    <a href="mailto:support@linkguardian.net" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <Link href="/support" className="nav-item" style={{ textDecoration: 'none', color: 'inherit' }}>
                         <Mail size={20} />
-                        <span>Support: support@linkguardian.net</span>
-                    </a>
+                        <span>Help & Support</span>
+                    </Link>
                 </nav>
 
                 <button

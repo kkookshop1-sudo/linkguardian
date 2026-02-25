@@ -25,6 +25,7 @@ export default async function LandingPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
                     <Link href="#features" style={{ fontWeight: 500, color: 'var(--secondary)' }}>Features</Link>
                     <Link href="#pricing" style={{ fontWeight: 500, color: 'var(--secondary)' }}>Pricing</Link>
+                    <Link href="/support" style={{ fontWeight: 500, color: 'var(--secondary)' }}>Support</Link>
                     {user ? (
                         <Link href="/dashboard">
                             <button className="btn btn-primary">Dashboard</button>
@@ -131,6 +132,9 @@ export default async function LandingPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
                     <ShieldCheck size={24} color="var(--primary)" />
                     <span style={{ fontSize: '1.25rem', fontWeight: 800 }}>LinkGuardian</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '2rem' }}>
+                    <Link href="/support" style={{ color: 'var(--secondary)' }}>Contact Support</Link>
                 </div>
                 <p style={{ color: 'var(--secondary)', fontSize: '0.875rem' }}>
                     © 2025 LinkGuardian. Built for the next generation of global creators.
